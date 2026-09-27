@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GRC Practice Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F3EC; --ink:#20241F; --ink-soft:#4B5147; --line:#C9C2AE;
+  --slate:#26332E; --teal:#2F5D57; --teal-soft:#DCE7E1;
+  --amber:#B4762A; --amber-soft:#F2E3CB;
+  --red:#8C3B34; --red-soft:#F1DCD6;
+  --green:#3C6E4A; --green-soft:#DCEADF;
+  --white:#FFFFFF;
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#181C18; --ink:#EDEAE0; --ink-soft:#ACB2A5; --line:#3A4038;
+    --slate:#0F1310; --teal:#5B9184; --teal-soft:#1E2B26;
+    --amber:#D79A4C; --amber-soft:#332A16;
+    --red:#D08076; --red-soft:#331E1B;
+    --green:#7FBB8E; --green-soft:#182E1F;
+    --white:#20241F;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#181C18; --ink:#EDEAE0; --ink-soft:#ACB2A5; --line:#3A4038;
+  --slate:#0F1310; --teal:#5B9184; --teal-soft:#1E2B26;
+  --amber:#D79A4C; --amber-soft:#332A16;
+  --red:#D08076; --red-soft:#331E1B;
+  --green:#7FBB8E; --green-soft:#182E1F;
+  --white:#20241F;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Inter',sans-serif; font-size:15px; line-height:1.55;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+}
+h1,h2,h3{font-family:'Source Serif 4',serif; font-weight:600; margin:0; letter-spacing:.1px;}
+.wrap{display:flex; min-height:100vh; min-height:100dvh;}
+
+/* ---- Sidebar ---- */
+.side{
+  width:250px; flex-shrink:0; background:var(--slate); color:#E7E4DA;
+  padding:28px 20px; position:sticky; top:0; top:env(safe-area-inset-top,0px);
+  align-self:flex-start; height:100vh; height:100dvh; overflow-y:auto;
+}
+.brand{font-family:'Source Serif 4',serif; font-size:22px; font-weight:700; color:#fff; line-height:1.25;}
+.brand em{font-style:normal; color:#9FC2B6;}
+.tagline{font-size:12.5px; color:#9CA79C; margin-top:8px; line-height:1.5;}
+.nav{margin-top:32px; display:flex; flex-direction:column; gap:2px;}
+.nav button{
+  all:unset; cursor:pointer; padding:11px 12px; border-radius:3px; font-size:13.5px;
+  color:#C9CFC6; display:flex; justify-content:space-between; align-items:center;
+  border-left:2px solid transparent;
+}
+.nav button:hover{background:rgba(255,255,255,.06); color:#fff;}
+.nav button.active{background:rgba(159,194,182,.14); color:#fff; border-left:2px solid #9FC2B6;}
+.nav .count{font-family:'IBM Plex Mono',monospace; font-size:11px; color:#7E897F;}
+.side-foot{margin-top:36px; padding-top:16px; border-top:1px solid rgba(255,255,255,.12); font-size:11.5px; color:#7E897F;}
+.reset-btn{all:unset; cursor:pointer; color:#C9847B; font-size:12px; margin-top:10px; display:inline-block;}
+.reset-btn:hover{text-decoration:underline;}
+
+/* ---- Main ---- */
+.main{flex:1; padding:34px 44px 60px; max-width:820px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--teal); margin-bottom:6px;}
+.module-title{font-size:28px;}
+.module-desc{color:var(--ink-soft); margin-top:10px; max-width:64ch; font-size:14.5px;}
+
+/* Home screen */
+.home-grid{margin-top:30px; border-top:1px solid var(--line);}
+.home-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 0; border-bottom:1px solid var(--line); cursor:pointer;
+}
+.home-row:hover .home-name{color:var(--teal);}
+.home-name{font-family:'Source Serif 4',serif; font-size:18px; font-weight:600;}
+.home-sub{color:var(--ink-soft); font-size:13px; margin-top:3px;}
+.home-arrow{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); font-size:13px;}
+
+/* Score strip */
+.stats{display:flex; gap:28px; margin:22px 0 8px; flex-wrap:wrap;}
+.stat{}
+.stat b{display:block; font-family:'IBM Plex Mono',monospace; font-size:20px;}
+.stat span{font-size:11.5px; color:var(--ink-soft);}
+
+/* Scenario card - ledger style, not rounded */
+.scenario{
+  margin-top:24px; border:1px solid var(--line); background:var(--white);
+  padding:22px 24px;
+}
+.scenario-label{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); margin-bottom:10px;}
+.scenario-text{font-size:16px; line-height:1.6;}
+.options{margin-top:20px; display:flex; flex-direction:column; gap:8px;}
+.opt{
+  all:unset; cursor:pointer; border:1px solid var(--line); padding:12px 14px;
+  font-size:14px; display:flex; gap:10px; align-items:flex-start;
+}
+.opt:hover{border-color:var(--teal);}
+.opt .k{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); flex-shrink:0;}
+.opt.correct{background:var(--green-soft); border-color:var(--green);}
+.opt.wrong{background:var(--red-soft); border-color:var(--red);}
+.opt.disabled{cursor:default;}
+.feedback{margin-top:16px; padding:14px 16px; font-size:13.5px; border-left:3px solid var(--teal); background:var(--teal-soft); display:none;}
+.feedback.show{display:block;}
+.feedback b{display:block; font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; margin-bottom:4px; letter-spacing:.4px;}
+.controls{margin-top:20px; display:flex; gap:12px; align-items:center;}
+.btn{
+  all:unset; cursor:pointer; background:var(--slate); color:#F6F3EC;
+  padding:10px 18px; font-size:13.5px; font-family:'Inter',sans-serif; font-weight:500;
+}
+.btn:hover{background:var(--teal);}
+.btn.ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+.btn.ghost:hover{color:var(--ink); border-color:var(--ink-soft);}
+.progress-txt{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);}
+
+/* Flashcard */
+.flash{
+  margin-top:24px; border:1px solid var(--line); background:var(--white);
+  padding:50px 30px; text-align:center; cursor:pointer; min-height:200px;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+}
+.flash-term{font-family:'Source Serif 4',serif; font-size:24px; font-weight:600;}
+.flash-def{font-size:14.5px; color:var(--ink-soft); margin-top:14px; max-width:52ch; display:none;}
+.flash-hint{font-size:11.5px; color:var(--ink-soft); margin-top:22px; font-family:'IBM Plex Mono',monospace;}
+.flash-rate{margin-top:18px; display:none; gap:10px;}
+
+.back{all:unset; cursor:pointer; font-size:12.5px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; margin-bottom:18px; display:inline-block;}
+.back:hover{color:var(--teal);}
+
+/* Mobile hamburger */
+.mobile-bar{display:none;}
+@media (max-width:860px){
+  .wrap{flex-direction:column;}
+  .side{position:relative; width:100%; height:auto; padding:16px 18px;}
+  .mobile-bar{display:flex; justify-content:space-between; align-items:center;}
+  .nav{display:none; margin-top:20px;}
+  .nav.open{display:flex;}
+  .main{padding:24px 20px 50px;}
+  .side-foot{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <div class="mobile-bar">
+      <div class="brand">GRC <em>Practice Ledger</em></div>
+      <button class="reset-btn" id="menuToggle" style="color:#fff;">☰ Menu</button>
+    </div>
+    <div class="brand" id="brandDesktop">GRC <em>Practice Ledger</em></div>
+    <div class="tagline" id="taglineDesktop">Scenario drills for Governance, Risk &amp; Compliance. No schedule, no daily cap — repeat any drill as many times as you want.</div>
+    <nav class="nav" id="navList"></nav>
+    <div class="side-foot">
+      Progress is saved on this device only.
+      <br><button class="reset-btn" id="resetBtn">Reset all progress</button>
+    </div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+/* ================= DATA ================= */
+const MODULES = [
+  {id:'risk-score', name:'Risk Scoring Drill', sub:'Rate likelihood × impact for real-world scenarios', kind:'quiz'},
+  {id:'treatment', name:'Risk Treatment Decisions', sub:'Accept, Mitigate, Transfer, or Avoid?', kind:'quiz'},
+  {id:'iso-control', name:'ISO 27001 Control Mapping', sub:'Match a situation to the right Annex A control area', kind:'quiz'},
+  {id:'nist-csf', name:'NIST CSF Function Match', sub:'Identify / Protect / Detect / Respond / Recover', kind:'quiz'},
+  {id:'audit-finding', name:'Audit Finding Classification', sub:'Major nonconformity, minor, or observation?', kind:'quiz'},
+  {id:'flashcards', name:'GRC Terminology', sub:'Fast recall — flip and self-rate', kind:'flash'},
+];
+
+const Q = {};
+
+Q['risk-score'] = [
+ {s:"A mid-size fintech stores customer PII on an unpatched, internet-facing database server. No known exploit is public yet, but the server has 40+ missing critical patches.", opts:["Low likelihood / Low impact","High likelihood / High impact","Low likelihood / High impact","High likelihood / Low impact"], a:1, why:"Internet-facing + many missing critical patches = high likelihood of exploitation. PII exposure = high impact (regulatory, reputational, financial)."},
+ {s:"An internal HR spreadsheet with last year's non-sensitive training attendance is stored on a shared drive with read access for all staff.", opts:["High likelihood / High impact","Low likelihood / Low impact","High likelihood / Low impact","Low likelihood / High impact"], a:1, why:"Low-sensitivity data, internal only, no real exploit path — both likelihood and impact of harm are low."},
+ {s:"A disgruntled sysadmin with full domain admin rights was terminated yesterday but their AD account is still active.", opts:["Low likelihood / Low impact","High likelihood / High impact","High likelihood / Low impact","Low likelihood / High impact"], a:1, why:"Motive + access = high likelihood; domain admin scope = catastrophic potential impact."},
+ {s:"A legacy backup tape from 2015, physically stored in a locked offsite vault, contains encrypted archival data no longer in active use.", opts:["High likelihood / High impact","Low likelihood / Low impact","Low likelihood / High impact","High likelihood / Low impact"], a:1, why:"Physical security control (locked vault) + encryption sharply reduce likelihood; data is archival, reducing impact."},
+ {s:"A single sign-on (SSO) provider used by the whole organization has an unpatched authentication bypass vulnerability, actively exploited in the wild.", opts:["Low likelihood / Low impact","Low likelihood / High impact","High likelihood / High impact","High likelihood / Low impact"], a:2, why:"Active exploitation in the wild = high likelihood; SSO compromise cascades to every downstream system = high impact."},
+ {s:"A marketing intern accidentally CC's one external client on an internal newsletter meant only for staff.", opts:["High likelihood / High impact","Low likelihood / Low impact","High likelihood / Low impact","Low likelihood / High impact"], a:1, why:"One-off human error, non-sensitive content — low probability of recurrence and minimal consequence."},
+ {s:"A vendor providing payroll processing has access to full bank account details of all employees, and their last SOC 2 report is two years overdue.", opts:["Low likelihood / Low impact","High likelihood / High impact","Low likelihood / High impact","High likelihood / Low impact"], a:2, why:"No recent assurance doesn't automatically mean a breach is likely, but the sensitivity of the data (bank details) makes impact severe if something does go wrong."},
+];
+
+Q['treatment'] = [
+ {s:"The cost of encrypting an old reporting database exceeds the value of the data it holds, and the data has no regulatory sensitivity.", opts:["Mitigate","Accept","Transfer","Avoid"], a:1, why:"When treatment cost outweighs the risk and impact is low, formally accepting the risk (with sign-off) is appropriate."},
+ {s:"An organization is expanding into a country with unfamiliar data residency laws it doesn't have expertise to comply with quickly.", opts:["Mitigate","Accept","Avoid","Transfer"], a:2, why:"Avoidance means not undertaking the activity (or delaying it) until the risk factor is removed — here, delaying market entry until compliance is understood."},
+ {s:"A company purchases cyber-insurance to cover the financial fallout of a potential ransomware incident.", opts:["Avoid","Mitigate","Accept","Transfer"], a:3, why:"Buying insurance shifts the financial consequence to a third party — classic risk transfer."},
+ {s:"An organization implements MFA and endpoint detection after identifying weak authentication as a top risk.", opts:["Transfer","Mitigate","Avoid","Accept"], a:1, why:"Adding controls (MFA, EDR) reduces likelihood/impact directly — this is mitigation."},
+ {s:"A firm outsources its physical data center operations to a certified cloud provider instead of running its own facility.", opts:["Accept","Avoid","Transfer","Mitigate"], a:2, why:"Handing the underlying operational risk to a third party (the cloud provider) is a transfer, even though some residual risk remains with the firm."},
+ {s:"Leadership decides a proposed IoT product feature introduces unacceptable safety risk and cancels the feature entirely.", opts:["Mitigate","Transfer","Accept","Avoid"], a:3, why:"Not proceeding with the risky activity at all is avoidance."},
+];
+
+Q['iso-control'] = [
+ {s:"New employees are granted system access before completing background verification checks.", opts:["A.6 – Organization of Information Security / HR Security","A.8 – Asset Management","A.12 – Operations Security","A.5 – Information Security Policies"], a:0, why:"Screening and onboarding controls sit under HR security / organizational controls (background checks prior to employment)."},
+ {s:"The company has no documented process for classifying which documents are Confidential, Internal, or Public.", opts:["A.9 – Access Control","A.8 – Asset Management (Information Classification)","A.16 – Incident Management","A.18 – Compliance"], a:1, why:"Information classification is explicitly part of asset management controls."},
+ {s:"Terminated employees' system accounts are not disabled for up to two weeks after their last day.", opts:["A.9 – Access Control","A.7 – Physical Security","A.14 – System Acquisition","A.17 – Business Continuity"], a:0, why:"Timely deprovisioning of access on termination is a core access control requirement."},
+ {s:"Production changes are deployed directly by developers with no peer review or change approval record.", opts:["A.5 – Policies","A.6 – HR Security","A.12 – Operations Security / Change Management","A.15 – Supplier Relationships"], a:2, why:"Change management (controlled, documented, approved changes) falls under operations security."},
+ {s:"A data center's fire suppression system has not been tested in three years.", opts:["A.7 – Physical and Environmental Security","A.9 – Access Control","A.13 – Communications Security","A.8 – Asset Management"], a:0, why:"Environmental protections like fire suppression sit under physical and environmental security."},
+ {s:"The organization signed a contract with a cloud vendor without assessing the vendor's security posture.", opts:["A.15 – Supplier Relationships","A.5 – Policies","A.9 – Access Control","A.16 – Incident Management"], a:0, why:"Vendor/supplier due diligence and contractual security requirements belong to the supplier relationships domain."},
+];
+
+Q['nist-csf'] = [
+ {s:"Maintaining an up-to-date inventory of all hardware and software assets across the organization.", opts:["Protect","Identify","Detect","Respond"], a:1, why:"Asset inventory and understanding your environment is core to the Identify function."},
+ {s:"Deploying a SIEM to continuously monitor logs for anomalous authentication patterns.", opts:["Identify","Protect","Detect","Recover"], a:2, why:"Continuous monitoring to discover security events is the Detect function."},
+ {s:"Rolling out mandatory security awareness training and enforcing least-privilege access.", opts:["Detect","Respond","Protect","Recover"], a:2, why:"Safeguards that limit or contain the impact of a potential event (training, access control) fall under Protect."},
+ {s:"Executing the incident response plan to contain a confirmed ransomware infection.", opts:["Detect","Respond","Protect","Identify"], a:1, why:"Containment and action once an incident is confirmed is the Respond function."},
+ {s:"Restoring systems from backup and communicating with stakeholders after a major outage.", opts:["Respond","Recover","Detect","Protect"], a:1, why:"Restoring normal operations after an incident is the Recover function."},
+ {s:"Conducting a risk assessment to understand which business processes depend on a critical third-party vendor.", opts:["Protect","Detect","Identify","Respond"], a:2, why:"Understanding risk context, including third-party dependencies, is part of Identify."},
+];
+
+Q['audit-finding'] = [
+ {s:"The ISMS has no evidence of a completed risk assessment for the past 18 months, despite this being a mandatory ISO 27001 requirement.", opts:["Observation","Minor Nonconformity","Major Nonconformity","No Finding"], a:2, why:"A complete absence of a required, ongoing process (risk assessment) — a systemic breakdown — is typically a major nonconformity."},
+ {s:"One employee's password was found written on a sticky note under their keyboard, an isolated case not reflecting broader policy failure.", opts:["Major Nonconformity","Observation","Minor Nonconformity","No Finding"], a:2, why:"An isolated instance of non-compliance with an otherwise-functioning control is usually classed as minor."},
+ {s:"The auditor notices that while the access review log is complete, the review comments could be more detailed for future traceability.", opts:["Minor Nonconformity","Major Nonconformity","Observation","No Finding"], a:2, why:"A suggestion for improvement where the control itself is working is recorded as an observation / opportunity for improvement, not a nonconformity."},
+ {s:"Multiple business units show no evidence of security awareness training being delivered in the last two years.", opts:["Observation","Major Nonconformity","No Finding","Minor Nonconformity"], a:1, why:"Widespread, longstanding failure of a required control across multiple units indicates a systemic issue — major nonconformity."},
+ {s:"A single server was found with a slightly outdated antivirus signature, patched the next day once flagged.", opts:["Major Nonconformity","Minor Nonconformity","No Finding","Observation"], a:1, why:"Isolated, quickly-remediated, limited-scope issue — typically minor."},
+];
+
+const FLASH = [
+ {t:"Inherent Risk", d:"The level of risk that exists before any controls are applied."},
+ {t:"Residual Risk", d:"The risk that remains after controls have been applied."},
+ {t:"Risk Appetite", d:"The amount of risk an organization is willing to accept in pursuit of its objectives."},
+ {t:"Risk Tolerance", d:"The acceptable deviation from risk appetite that an organization can withstand."},
+ {t:"Control Owner", d:"The individual accountable for the design, operation, and effectiveness of a specific control."},
+ {t:"Compensating Control", d:"An alternative control used when the primary control can't be implemented, achieving a similar risk-reduction effect."},
+ {t:"Statement of Applicability (SoA)", d:"An ISO 27001 document listing which Annex A controls are applicable, and justifying inclusions/exclusions."},
+ {t:"Gap Assessment", d:"A review comparing current practices against a framework's requirements to identify shortfalls."},
+ {t:"Three Lines Model", d:"A governance model separating management controls (1st line), risk/compliance oversight (2nd line), and internal audit (3rd line)."},
+ {t:"Due Diligence", d:"The investigation and assessment carried out before entering into an agreement or relationship, e.g. with a vendor."},
+ {t:"RACI Matrix", d:"A responsibility-assignment chart: Responsible, Accountable, Consulted, Informed."},
+ {t:"Nonconformity", d:"A failure to meet a specified requirement of a standard or framework."},
+ {t:"Corrective Action", d:"Action taken to eliminate the cause of a detected nonconformity, preventing recurrence."},
+ {t:"Key Risk Indicator (KRI)", d:"A metric used to signal an increasing risk exposure in an area of the business."},
+ {t:"Segregation of Duties (SoD)", d:"Dividing critical tasks among multiple people to reduce the risk of error or fraud."},
+ {t:"Third-Party Risk Management (TPRM)", d:"The process of identifying, assessing, and mitigating risks introduced by vendors and partners."},
+ {t:"Business Impact Analysis (BIA)", d:"A process that identifies critical business functions and the impact of their disruption."},
+ {t:"Control Self-Assessment (CSA)", d:"A process where business units evaluate the effectiveness of their own controls."},
+];
+
+/* ================= STATE ================= */
+const state = JSON.parse(localStorage.getItem('grc_practice_state') || '{}');
+function saveState(){ localStorage.setItem('grc_practice_state', JSON.stringify(state)); }
+function modStat(id){ return state[id] || {attempted:0, correct:0}; }
+function bump(id, correct){
+  const s = state[id] || {attempted:0, correct:0};
+  s.attempted++; if(correct) s.correct++;
+  state[id] = s; saveState();
+}
+
+let current = {mod:null, order:[], idx:0, answered:false};
+
+function shuffled(n){
+  const arr = [...Array(n).keys()];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+/* ================= NAV ================= */
+function renderNav(){
+  const nav = document.getElementById('navList');
+  nav.innerHTML = '';
+  const homeBtn = document.createElement('button');
+  homeBtn.textContent = 'Overview';
+  homeBtn.className = current.mod === null ? 'active' : '';
+  homeBtn.onclick = () => { current.mod = null; render(); };
+  nav.appendChild(homeBtn);
+  MODULES.forEach(m => {
+    const b = document.createElement('button');
+    b.className = current.mod === m.id ? 'active' : '';
+    const st = modStat(m.id);
+    b.innerHTML = `<span>${m.name}</span><span class="count">${st.attempted ? st.correct+'/'+st.attempted : ''}</span>`;
+    b.onclick = () => { current.mod = m.id; current.order = shuffled((Q[m.id]||FLASH).length); current.idx = 0; current.answered=false; render(); document.getElementById('navList').classList.remove('open'); };
+    nav.appendChild(b);
+  });
+}
+
+/* ================= RENDER ================= */
+function render(){
+  renderNav();
+  const main = document.getElementById('main');
+  if(current.mod === null){ renderHome(main); return; }
+  const mod = MODULES.find(m => m.id === current.mod);
+  if(mod.kind === 'quiz') renderQuiz(main, mod);
+  else renderFlash(main, mod);
+}
+
+function renderHome(main){
+  let totalAtt=0, totalCorrect=0;
+  MODULES.forEach(m=>{ const s=modStat(m.id); totalAtt+=s.attempted; totalCorrect+=s.correct; });
+  main.innerHTML = `
+    <div class="eyebrow">GRC Practice Ledger</div>
+    <h1 class="module-title">Practice what actually comes up in the job</h1>
+    <p class="module-desc">Real GRC work is judgment calls under a scenario — not flashcard theory. Pick a drill below. There's no daily limit and no set order: repeat any drill as many times as you like, in whatever sequence makes sense for you.</p>
+    <div class="stats">
+      <div class="stat"><b>${totalAtt}</b><span>Questions attempted</span></div>
+      <div class="stat"><b>${totalAtt? Math.round(100*totalCorrect/totalAtt):0}%</b><span>Overall accuracy</span></div>
+    </div>
+    <div class="home-grid" id="homeGrid"></div>
+  `;
+  const grid = document.getElementById('homeGrid');
+  MODULES.forEach(m=>{
+    const st = modStat(m.id);
+    const row = document.createElement('div');
+    row.className = 'home-row';
+    row.innerHTML = `<div><div class="home-name">${m.name}</div><div class="home-sub">${m.sub}</div></div>
+      <div class="home-arrow">${st.attempted? st.correct+'/'+st.attempted+' correct' : 'Start →'}</div>`;
+    row.onclick = () => { current.mod = m.id; current.order = shuffled((Q[m.id]||FLASH).length); current.idx = 0; current.answered=false; render(); };
+    grid.appendChild(row);
+  });
+}
+
+function renderQuiz(main, mod){
+  const bank = Q[mod.id];
+  if(current.idx >= current.order.length){ current.order = shuffled(bank.length); current.idx = 0; }
+  const qi = current.order[current.idx];
+  const item = bank[qi];
+  main.innerHTML = `
+    <button class="back" id="backBtn">← Overview</button>
+    <div class="eyebrow">${mod.name}</div>
+    <h1 class="module-title">${mod.sub}</h1>
+    <div class="scenario">
+      <div class="scenario-label">Scenario ${current.idx+1} of ${bank.length}</div>
+      <div class="scenario-text">${item.s}</div>
+      <div class="options" id="opts"></div>
+      <div class="feedback" id="fb"><b id="fbHead"></b><span id="fbBody"></span></div>
+      <div class="controls">
+        <button class="btn" id="nextBtn" style="display:none;">Next scenario</button>
+        <span class="progress-txt" id="scoreTxt"></span>
+      </div>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = () => { current.mod = null; render(); };
+  const optsEl = document.getElementById('opts');
+  item.opts.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = `<span class="k">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;
+    b.onclick = () => selectOpt(i, item, optsEl);
+    optsEl.appendChild(b);
+  });
+  const st = modStat(mod.id);
+  document.getElementById('scoreTxt').textContent = st.attempted ? `Score: ${st.correct}/${st.attempted}` : '';
+  current.answered = false;
+}
+
+function selectOpt(i, item, optsEl){
+  if(current.answered) return;
+  current.answered = true;
+  const correct = i === item.a;
+  [...optsEl.children].forEach((el, idx) => {
+    el.classList.add('disabled');
+    if(idx === item.a) el.classList.add('correct');
+    else if(idx === i) el.classList.add('wrong');
+  });
+  const fb = document.getElementById('fb');
+  fb.classList.add('show');
+  document.getElementById('fbHead').textContent = correct ? 'Correct' : 'Not quite';
+  document.getElementById('fbBody').textContent = item.why;
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  document.getElementById('nextBtn').onclick = () => { current.idx++; render(); };
+  bump(current.mod, correct);
+  document.getElementById('scoreTxt').textContent = `Score: ${modStat(current.mod).correct}/${modStat(current.mod).attempted}`;
+}
+
+function renderFlash(main, mod){
+  if(current.idx >= current.order.length){ current.order = shuffled(FLASH.length); current.idx = 0; }
+  const item = FLASH[current.order[current.idx]];
+  main.innerHTML = `
+    <button class="back" id="backBtn">← Overview</button>
+    <div class="eyebrow">${mod.name}</div>
+    <h1 class="module-title">${mod.sub}</h1>
+    <div class="flash" id="flashCard">
+      <div class="flash-term">${item.t}</div>
+      <div class="flash-def" id="flashDef">${item.d}</div>
+      <div class="flash-hint" id="flashHint">Tap card to reveal definition</div>
+      <div class="flash-rate" id="flashRate">
+        <button class="btn ghost" id="knewBtn">I knew this</button>
+        <button class="btn" id="reviewBtn">Review again</button>
+      </div>
+    </div>
+    <div class="controls">
+      <span class="progress-txt">Card ${current.idx+1} of ${FLASH.length} · Known: ${modStat(mod.id).correct}/${modStat(mod.id).attempted}</span>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = () => { current.mod = null; render(); };
+  document.getElementById('flashCard').onclick = (e) => {
+    if(e.target.closest('#flashRate')) return;
+    document.getElementById('flashDef').style.display = 'block';
+    document.getElementById('flashHint').style.display = 'none';
+    document.getElementById('flashRate').style.display = 'flex';
+  };
+  document.getElementById('knewBtn').onclick = (e) => { e.stopPropagation(); bump(mod.id, true); current.idx++; render(); };
+  document.getElementById('reviewBtn').onclick = (e) => { e.stopPropagation(); bump(mod.id, false); current.idx++; render(); };
+}
+
+document.getElementById('menuToggle').onclick = () => document.getElementById('navList').classList.toggle('open');
+document.getElementById('resetBtn').onclick = () => {
+  if(confirm('Clear all saved scores on this device?')){ localStorage.removeItem('grc_practice_state'); Object.keys(state).forEach(k=>delete state[k]); render(); }
+};
+
+render();
+</script>
+</body>
+</html>
